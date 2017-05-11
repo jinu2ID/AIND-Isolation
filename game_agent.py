@@ -3,7 +3,7 @@ test your agent's strength against a set of known agents using tournament.py
 and include the results in your report.
 """
 import random
-
+from random import randint
 
 class SearchTimeout(Exception):
     """Subclass base exception for code clarity. """
@@ -34,8 +34,13 @@ def custom_score(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
-    raise NotImplementedError
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    return float(len(game.get_legal_moves(player)))
 
 
 def custom_score_2(game, player):
@@ -170,6 +175,7 @@ class MinimaxPlayer(IsolationPlayer):
         # Return the best move from the last completed search iteration
         return best_move
 
+
     def minimax(self, game, depth):
         """Implement depth-limited minimax search algorithm as described in
         the lectures.
@@ -209,11 +215,67 @@ class MinimaxPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
+
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        legal_moves = game.get_legal_moves()
+        if not legal_moves:
+            return (-1, -1)
+
+        best_move = (-1, -1)
+        best_score = float('-inf')
+        # Find the next move with the best utility
+        for move in legal_moves:
+            clone = game.forecast_move(move)
+            score = self.min_value(clone, depth)
+            if score > best_score:
+                best_score = score
+                best_move = move
+        return best_move
+
+    def min_value(self, game, depth):
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+        pass
+
+        legal_moves = game.get_legal_moves(game.active_player)
+        # For leaf node or max depth return score
+        if not legal_moves or depth == 1:
+            return self.score(game, self)
+
+        # Continue down search tree
+        best_score = float('inf')
+        # Get the score for each child node
+        for move in legal_moves:
+            clone = game.forecast_move(move)
+            score = self.max_value(clone, depth-1)
+            # Keep track of the best score
+            if score < best_score:
+                best_score = score
+        return best_score
+
+    def max_value(self, game, depth):
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
+        legal_moves = game.get_legal_moves(game.active_player)
+        # For leaf node or max depth return score
+        if not legal_moves or depth == 1:
+            return self.score(game, self)
+
+        # Continue down search tree
+        best_score = float('-inf')
+        # Get the score for each child node
+        for move in legal_moves:
+            clone = game.forecast_move(move)
+            score = self.min_value(clone, depth-1)
+            # Keep track of the best score
+            if score > best_score:
+                best_score = score
+        return best_score
+
+
 
 
 class AlphaBetaPlayer(IsolationPlayer):
